@@ -1,5 +1,7 @@
 package com.chat.main.socket.handler;
 
+import com.chat.main.application.chat.domain.MessageType;
+import com.chat.main.socket.telegram.Chatting;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
@@ -34,6 +36,14 @@ public class SocketServerHandler implements ChannelInboundHandler {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         log.info("[Handler] channelRead");
+        String message = (String) msg;
+        log.info("[Handler] Message : {}", msg);
+
+        Chatting telegram = Chatting.builder()
+                .messageType(MessageType.MESSAGE)
+                .message(message)
+                .build();
+        ctx.writeAndFlush(telegram);
     }
 
     @Override
