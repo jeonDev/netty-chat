@@ -1,7 +1,6 @@
 package com.chat.main.socket.config;
 
 import io.netty.bootstrap.ServerBootstrap;
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -9,39 +8,40 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SocketServerConfig {
 
-    private final ServerBootstrap bootstrap;
-    private final NioEventLoopGroup bossGroup;
-    private final NioEventLoopGroup workerGroup;
+    private final int backlog;
     private final ChannelInitializer<SocketChannel> socketServerInitializer;
 
-    public SocketServerConfig(ChannelInitializer<SocketChannel> socketServerInitializer) {
-        this.bootstrap   = new ServerBootstrap();
-        this.bossGroup   = new NioEventLoopGroup(1);
-        this.workerGroup = new NioEventLoopGroup();
+    public SocketServerConfig(@Value("${socket.chat.server.backlog}") int backlog,
+                              ChannelInitializer<SocketChannel> socketServerInitializer) {
+        this.backlog = backlog;
         this.socketServerInitializer = socketServerInitializer;
     }
 
-
     @Bean
-    public ServerBootstrap serverBootStrap() {
-        return bootstrap.group(bossGroup, workerGroup)
+    public ServerBootstrap serverBootstrap() {
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.group(bossGroup(), workerGroup())
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10)
-                .option(ChannelOption.SO_BACKLOG, 50)
+                .option(ChannelOption.SO_BACKLOG, backlog)
                 .handler(new LoggingHandler(LogLevel.DEBUG))
                 .childHandler(socketServerInitializer);
+        return bootstrap;
     }
 
-    @PreDestroy
-    public void destroy() {
-        workerGroup.shutdownGracefully();
-        bossGroup.shutdownGracefully();
+    @Bean(destroyMethod = "shutdownGracefully")
+    public NioEventLoopGroup bossGroup() {
+        return new NioEventLoopGroup(1);
+    }
+
+    @Bean(destroyMethod = "shutdownGracefully")
+    public NioEventLoopGroup workerGroup() {
+        return new NioEventLoopGroup();
     }
 }
