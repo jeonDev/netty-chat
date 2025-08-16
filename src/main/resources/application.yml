@@ -13,3 +13,9 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+socket:
+  chat:
+    server:
+      port: 10005
+      backlog: 128
