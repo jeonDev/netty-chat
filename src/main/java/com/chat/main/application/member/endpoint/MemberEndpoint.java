@@ -1,4 +1,4 @@
-package com.chat.main.application.chat.endpoint;
+package com.chat.main.application.member.endpoint;
 
 import com.chat.main.application.member.usecase.query.MemberDto;
 import com.chat.main.application.member.usecase.query.MemberSearchUseCase;
