@@ -1,7 +1,7 @@
 package com.chat.main.socket.handler;
 
-import com.chat.main.socket.codec.SocketTelegramDecoder;
-import com.chat.main.socket.codec.SocketTelegramEncoder;
+import com.chat.main.socket.pipeline.SocketTelegramDecoder;
+import com.chat.main.socket.pipeline.SocketTelegramEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
