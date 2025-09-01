@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room</title>
+    <style>
+        body { font-family: sans-serif; }
+        #message-area { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        .message { margin-bottom: 5px; }
+        #input-area { display: flex; }
+        #nickname { width: 100px; margin-right: 10px; }
+        #message-input { flex-grow: 1; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>Chat Room</h1>
+
+<div id="message-area"></div>
+
+<div id="input-area">
+    <input type="text" id="nickname" placeholder="Nickname">
+    <input type="text" id="message-input" placeholder="Enter your message...">
+    <button id="send-button">Send</button>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const nicknameInput = document.getElementById("nickname");
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+        const messageArea = document.getElementById("message-area");
+
+        let ws;
+
+        function connect() {
+            ws = new WebSocket("ws://localhost:10005/ws");
+
+            ws.onopen = function(event) {
+                addMessage("System", "Connected to the chat server.");
+            };
+
+            ws.onmessage = function(event) {
+                // Assuming the server sends a JSON string like '{"sender":"user","message":"hello"}'
+                // Or a simple string. We'll try to parse JSON, but fallback to plain text.
+                try {
+                    const data = JSON.parse(event.data);
+                    addMessage(data.sender, data.message);
+                } catch (e) {
+                    // If the data is not a valid JSON, display it as is.
+                    // This part might need adjustment based on what the server actually sends.
+                    addMessage("Server", event.data);
+                }
+            };
+
+            ws.onclose = function(event) {
+                addMessage("System", "Disconnected. Trying to reconnect...");
+                setTimeout(connect, 3000); // Try to reconnect every 3 seconds
+            };
+
+            ws.onerror = function(error) {
+                addMessage("System", "An error occurred.");
+                console.error("WebSocket Error: ", error);
+            };
+        }
+
+        function sendMessage() {
+            const nickname = nicknameInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (nickname === "") {
+                alert("Please enter a nickname.");
+                return;
+            }
+            if (message === "") {
+                return; // Don't send empty messages
+            }
+
+            // Assuming the server expects a JSON string.
+            // This might need to be adjusted based on your server's Telegram format.
+            const data = {
+                sender: nickname,
+                message: message
+            };
+
+            ws.send(JSON.stringify(data));
+            messageInput.value = "";
+        }
+
+        function addMessage(sender, message) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            messageElement.textContent = `[${sender}]: ${message}`;
+            messageArea.appendChild(messageElement);
+            messageArea.scrollTop = messageArea.scrollHeight; // Scroll to the bottom
+        }
+
+        sendButton.addEventListener("click", sendMessage);
+        messageInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        connect(); // Initial connection
+    });
+</script>
+
+</body>
+</html>
