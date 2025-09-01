@@ -1,4 +1,4 @@
-package com.chat.main.socket.codec;
+package com.chat.main.socket.pipeline;
 
 import com.chat.main.socket.telegram.Telegram;
 import io.netty.buffer.ByteBuf;

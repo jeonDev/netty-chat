@@ -1,4 +1,4 @@
-package com.chat.main.socket.codec;
+package com.chat.main.socket.pipeline;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
