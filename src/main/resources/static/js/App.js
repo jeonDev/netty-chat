@@ -1,37 +1,55 @@
 const { useState, useEffect, useRef } = React;
 
-// --- HomePage Component ---
-const HomePage = ({ onEnterChat }) => {
-    const [nickname, setNickname] = useState('');
+// --- MainPage Component ---
+const MainPage = ({ onNavigateToLogin }) => (
+    <div style={styles.homeContainer}>
+        <h1 style={{ marginBottom: '30px' }}>Welcome to Chat App</h1>
+        <button style={styles.button} onClick={onNavigateToLogin}>Go to Login</button>
+    </div>
+);
 
-    const handleEnter = () => {
-        if (nickname.trim()) {
-            onEnterChat(nickname.trim());
+
+// --- LoginPage Component ---
+const LoginPage = ({ onLogin }) => {
+    const [id, setId] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = () => {
+        if (id.trim() && password.trim()) {
+            onLogin(id.trim());
         } else {
-            alert('Please enter a nickname.');
+            alert('Please enter both ID and Password.');
         }
     };
 
     const handleKeyPress = (event) => {
-        if (event.key === 'Enter') handleEnter();
+        if (event.key === 'Enter') handleLogin();
     };
 
     return (
         <div style={styles.homeContainer}>
-            <h2 style={{ marginBottom: '20px' }}>Welcome to the Chat</h2>
-            <p style={{ marginBottom: '20px', color: '#555' }}>Please enter a nickname to join.</p>
+            <h2 style={{ marginBottom: '20px' }}>Login</h2>
             <input
                 style={styles.input}
                 type="text"
-                placeholder="Your Nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                placeholder="ID"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 onKeyPress={handleKeyPress}
             />
-            <button style={styles.button} onClick={handleEnter}>Enter Chat Room</button>
+            <input
+                style={{...styles.input, marginTop: '10px'}}
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={handleKeyPress}
+            />
+            <button style={{...styles.button, marginTop: '20px'}} onClick={handleLogin}>Login & Enter Chat</button>
         </div>
     );
 };
+
 
 // --- ChatPage Component ---
 const ChatPage = ({ ws, nickname }) => {
@@ -45,7 +63,6 @@ const ChatPage = ({ ws, nickname }) => {
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                // Don't show messages sent by me that came back from the server
                 if (data.sender !== nickname) {
                     setMessages(prev => [...prev, { ...data, type: 'user' }]);
                 }
@@ -105,7 +122,7 @@ const ChatPage = ({ ws, nickname }) => {
             </div>
             <div style={styles.inputArea}>
                 <input
-                    style={styles.input}
+                    style={{...styles.input, width: '100%'}}
                     type="text"
                     placeholder="Enter your message..."
                     value={message}
@@ -121,35 +138,38 @@ const ChatPage = ({ ws, nickname }) => {
 
 // --- Main App Component ---
 const App = () => {
-    const [page, setPage] = useState('home'); // 'home' or 'chat'
+    const [page, setPage] = useState('main'); // 'main', 'login', or 'chat'
     const [nickname, setNickname] = useState('');
     const [ws, setWs] = useState(null);
 
     useEffect(() => {
-        // Establish WebSocket connection once
         const webSocket = new WebSocket("ws://localhost:10005/ws");
         setWs(webSocket);
-
-        // Cleanup on component unmount
         return () => {
-            if (webSocket) {
-                webSocket.close();
-            }
+            if (webSocket) webSocket.close();
         };
-    }, []); // Empty array ensures this runs only once
+    }, []);
 
-    const handleEnterChat = (name) => {
-        setNickname(name);
+    const handleLogin = (id) => {
+        setNickname(id);
         setPage('chat');
+    };
+
+    const renderPage = () => {
+        switch (page) {
+            case 'login':
+                return <LoginPage onLogin={handleLogin} />;
+            case 'chat':
+                return <ChatPage ws={ws} nickname={nickname} />;
+            case 'main':
+            default:
+                return <MainPage onNavigateToLogin={() => setPage('login')} />;
+        }
     };
 
     return (
         <div>
-            {page === 'home' ? (
-                <HomePage onEnterChat={handleEnterChat} />
-            ) : (
-                <ChatPage ws={ws} nickname={nickname} />
-            )}
+            {renderPage()}
         </div>
     );
 };
