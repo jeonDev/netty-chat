@@ -1,76 +1,187 @@
-const { HashRouter, Route, Switch, Link } = ReactRouterDOM;
-const { useState, useEffect, useRef, createContext, useContext } = React;
+const { useState, useEffect, useRef } = React;
 
-const WebSocketContext = createContext(null);
+// --- HomePage Component ---
+const HomePage = ({ onEnterChat }) => {
+    const [nickname, setNickname] = useState('');
 
-const App = () => {
-    const [ws, setWs] = useState(null);
-    const [globalMessages, setGlobalMessages] = useState([]); // To store messages globally if needed
-
-    useEffect(() => {
-        const connectWebSocket = () => {
-            const newWs = new WebSocket("ws://localhost:10005/ws");
-
-            newWs.onopen = () => {
-                console.log("WebSocket Connected Globally.");
-                // addGlobalMessage({ sender: 'System', message: 'Connected to the chat server.', type: 'system' });
-            };
-
-            newWs.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    // This is where you'd handle incoming messages globally if needed
-                    // For now, ChatPage will handle its own display based on context
-                    console.log("Global WS message received:", data);
-                } catch (e) {
-                    console.log("Global WS raw message received:", event.data);
-                }
-            };
-
-            newWs.onclose = () => {
-                console.log("WebSocket Disconnected Globally. Reconnecting...");
-                // addGlobalMessage({ sender: 'System', message: 'Disconnected. Trying to reconnect...', type: 'system' });
-                setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
-            };
-
-            newWs.onerror = (error) => {
-                console.error("Global WebSocket Error: ", error);
-                // addGlobalMessage({ sender: 'System', message: 'An error occurred.', type: 'system' });
-            };
-
-            setWs(newWs);
-        };
-
-        connectWebSocket();
-
-        return () => {
-            if (ws) {
-                ws.close();
-            }
-        };
-    }, []); // Empty dependency array means this runs once on mount
-
-    const sendGlobalMessage = (data) => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(data));
+    const handleEnter = () => {
+        if (nickname.trim()) {
+            onEnterChat(nickname.trim());
         } else {
-            console.warn("WebSocket not open. Message not sent.", data);
+            alert('Please enter a nickname.');
         }
     };
 
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') handleEnter();
+    };
+
     return (
-        <HashRouter>
-            <h1>React Chat SPA</h1>
-            <nav style={{ marginBottom: '20px', textAlign: 'center' }}>
-                <Link to="/" style={{ margin: '0 10px' }}>Home</Link>
-                <Link to="/chat" style={{ margin: '0 10px' }}>Chat</Link>
-            </nav>
-            <WebSocketContext.Provider value={{ wsInstance: ws, send: sendGlobalMessage }}>
-                <Switch>
-                    <Route exact path="/" component={HomePage} />
-                    <Route path="/chat" component={ChatPage} />
-                </Switch>
-            </WebSocketContext.Provider>
-        </HashRouter>
+        <div style={styles.homeContainer}>
+            <h2 style={{ marginBottom: '20px' }}>Welcome to the Chat</h2>
+            <p style={{ marginBottom: '20px', color: '#555' }}>Please enter a nickname to join.</p>
+            <input
+                style={styles.input}
+                type="text"
+                placeholder="Your Nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                onKeyPress={handleKeyPress}
+            />
+            <button style={styles.button} onClick={handleEnter}>Enter Chat Room</button>
+        </div>
     );
 };
+
+// --- ChatPage Component ---
+const ChatPage = ({ ws, nickname }) => {
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
+    const messageAreaRef = useRef(null);
+
+    useEffect(() => {
+        if (!ws) return;
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                // Don't show messages sent by me that came back from the server
+                if (data.sender !== nickname) {
+                    setMessages(prev => [...prev, { ...data, type: 'user' }]);
+                }
+            } catch (e) {
+                setMessages(prev => [...prev, { sender: 'Server', message: event.data, type: 'user' }]);
+            }
+        };
+
+        ws.onopen = () => {
+             setMessages(prev => [...prev, { type: 'system', message: 'Connected to the chat server.' }]);
+        }
+
+        ws.onclose = () => {
+            setMessages(prev => [...prev, { type: 'system', message: 'Connection lost.' }]);
+        }
+
+    }, [ws, nickname]);
+
+    useEffect(() => {
+        if (messageAreaRef.current) {
+            messageAreaRef.current.scrollTop = messageAreaRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const handleSendMessage = () => {
+        if (message.trim() === "" || !ws || ws.readyState !== WebSocket.OPEN) return;
+        
+        const data = { sender: nickname, message: message };
+        ws.send(JSON.stringify(data));
+        setMessages(prev => [...prev, { ...data, type: 'user', isMine: true }]);
+        setMessage('');
+    };
+
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') handleSendMessage();
+    };
+
+    return (
+        <div>
+            <h2 style={{textAlign: 'center'}}>Chat Room (Hi, {nickname})</h2>
+            <div style={styles.messageArea} ref={messageAreaRef}>
+                {messages.map((msg, index) => {
+                    if (msg.type === 'system') {
+                        return <div key={index} style={styles.systemMessage}>{msg.message}</div>;
+                    }
+                    const isMine = msg.isMine;
+                    const messageStyle = isMine ? styles.myMessage : styles.otherMessage;
+                    return (
+                        <div key={index} style={messageStyle.container}>
+                            <div style={messageStyle.content}>
+                                {!isMine && <div style={styles.sender}>{msg.sender}</div>}
+                                <span>{msg.message}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            <div style={styles.inputArea}>
+                <input
+                    style={styles.input}
+                    type="text"
+                    placeholder="Enter your message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                />
+                <button style={styles.button} onClick={handleSendMessage}>Send</button>
+            </div>
+        </div>
+    );
+};
+
+
+// --- Main App Component ---
+const App = () => {
+    const [page, setPage] = useState('home'); // 'home' or 'chat'
+    const [nickname, setNickname] = useState('');
+    const [ws, setWs] = useState(null);
+
+    useEffect(() => {
+        // Establish WebSocket connection once
+        const webSocket = new WebSocket("ws://localhost:10005/ws");
+        setWs(webSocket);
+
+        // Cleanup on component unmount
+        return () => {
+            if (webSocket) {
+                webSocket.close();
+            }
+        };
+    }, []); // Empty array ensures this runs only once
+
+    const handleEnterChat = (name) => {
+        setNickname(name);
+        setPage('chat');
+    };
+
+    return (
+        <div>
+            {page === 'home' ? (
+                <HomePage onEnterChat={handleEnterChat} />
+            ) : (
+                <ChatPage ws={ws} nickname={nickname} />
+            )}
+        </div>
+    );
+};
+
+// --- Styles ---
+const styles = {
+    homeContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px',
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+        maxWidth: '400px',
+        margin: '50px auto',
+        backgroundColor: '#f9f9f9'
+    },
+    input: { padding: '10px', fontSize: '16px', width: '80%', borderRadius: '4px', border: '1px solid #ddd' },
+    button: { padding: '10px 20px', fontSize: '16px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' },
+    messageArea: { border: '1px solid #ccc', padding: '10px', height: '400px', overflowY: 'scroll', marginBottom: '10px', backgroundColor: '#fafafa', borderRadius: '4px' },
+    inputArea: { display: 'flex', gap: '10px' },
+    systemMessage: { fontStyle: 'italic', color: '#888', textAlign: 'center', width: '100%', marginBottom: '8px' },
+    sender: { fontWeight: 'bold', marginBottom: '4px', fontSize: '0.9em', color: '#555' },
+    myMessage: {
+        container: { textAlign: 'right', marginBottom: '8px' },
+        content: { backgroundColor: '#dcf8c6', padding: '8px 12px', borderRadius: '15px', display: 'inline-block', textAlign: 'left' }
+    },
+    otherMessage: {
+        container: { textAlign: 'left', marginBottom: '8px' },
+        content: { backgroundColor: '#f1f1f1', padding: '8px 12px', borderRadius: '15px', display: 'inline-block' }
+    }
+};
+
+ReactDOM.render(<App />, document.getElementById('root'));

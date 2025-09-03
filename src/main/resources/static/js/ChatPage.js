@@ -1,96 +1,72 @@
-const { useState, useEffect, useRef } = React;
-const { useLocation, useHistory } = ReactRouterDOM;
+const { useState, useEffect, useRef, useContext } = React;
 
 const ChatPage = () => {
-    const location = useLocation();
-    const history = useHistory();
+    const location = ReactRouterDOM.useLocation();
+    const history = ReactRouterDOM.useHistory();
     
-    const [nickname, setNickname] = useState(location.state?.nickname || '');
+    // Get nickname from navigation state or redirect if it doesn't exist
+    const [nickname, setNickname] = useState((location.state && location.state.nickname) || '');
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([]);
-    const ws = useRef(null);
+    
+    // Get WebSocket context from App.js
+    const { ws, messages, send } = useContext(WebSocketContext);
     const messageAreaRef = useRef(null);
 
     useEffect(() => {
+        // If the user lands here without a nickname, send them back to the home page
         if (!nickname) {
-            history.replace('/'); // If no nickname, redirect to home
-            return;
+            history.replace('/');
         }
-
-        const connect = () => {
-            ws.current = new WebSocket("ws://localhost:10005/ws");
-
-            ws.current.onopen = () => addMessage({ sender: 'System', message: 'Connected to the chat server.', type: 'system' });
-            ws.current.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.sender !== nickname) { // Only show messages from others
-                        addMessage({ ...data, type: 'user' });
-                    }
-                } catch (e) {
-                    addMessage({ sender: 'Server', message: event.data, type: 'user' });
-                }
-            };
-            ws.current.onclose = () => {
-                addMessage({ sender: 'System', message: 'Disconnected. Trying to reconnect...', type: 'system' });
-                setTimeout(connect, 3000);
-            };
-            ws.current.onerror = (error) => {
-                addMessage({ sender: 'System', message: 'An error occurred.', type: 'system' });
-                console.error("WebSocket Error: ", error);
-            };
-        };
-
-        connect();
-
-        return () => {
-            if (ws.current) ws.current.close();
-        };
     }, [nickname, history]);
 
+    // Effect to auto-scroll to the latest message
     useEffect(() => {
         if (messageAreaRef.current) {
             messageAreaRef.current.scrollTop = messageAreaRef.current.scrollHeight;
         }
     }, [messages]);
 
-    const addMessage = (msg) => {
-        setMessages(prev => [...prev, msg]);
-    };
-
-    const sendMessage = () => {
+    const handleSendMessage = () => {
         if (message.trim() === "") return;
 
         const data = { sender: nickname, message: message };
-
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            ws.current.send(JSON.stringify(data));
-            addMessage({ ...data, type: 'user', isMine: true });
-            setMessage('');
-        } else {
-            addMessage({ sender: 'System', message: 'Connection is not open.', type: 'system' });
-        }
+        send(data); // Use the send function from context
+        setMessage(''); // Clear the input field
     };
 
     const handleKeyPress = (event) => {
-        if (event.key === 'Enter') sendMessage();
+        if (event.key === 'Enter') {
+            handleSendMessage();
+        }
     };
 
-    if (!nickname) return null; // Don't render if there's no nickname
+    // Don't render anything if the nickname isn't set
+    if (!nickname) return null;
 
     return (
         <div>
             <h2>Chat Room (Hi, {nickname})</h2>
             <div className="message-area" ref={messageAreaRef}>
                 {messages.map((msg, index) => {
+                    // System messages
                     if (msg.type === 'system') {
                         return <div key={index} className="message system-message">{msg.message}</div>;
                     }
-                    const messageClass = msg.isMine ? 'my-message' : 'other-message';
+
+                    // User messages
+                    // Determine if the message is from the current user
+                    const isMine = msg.sender === nickname && msg.isMine;
+                    const messageClass = isMine ? 'my-message' : 'other-message';
+                    
+                    // Don't show messages sent by me that came back from the server
+                    if (msg.sender === nickname && !msg.isMine) {
+                        return null;
+                    }
+
                     return (
                         <div key={index} className={`message ${messageClass}`}>
                             <div className="content">
-                                {!msg.isMine && <span className="sender">{msg.sender}</span>}
+                                {!isMine && <span className="sender">{msg.sender}</span>}
                                 <span>{msg.message}</span>
                             </div>
                         </div>
@@ -105,7 +81,7 @@ const ChatPage = () => {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                 />
-                <button onClick={sendMessage}>Send</button>
+                <button onClick={handleSendMessage}>Send</button>
             </div>
         </div>
     );

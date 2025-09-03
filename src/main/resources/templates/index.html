@@ -2,51 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>React Chat SPA</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <style>
-        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
-        #root { max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: #333; }
-        
-        /* HomePage Styles */
-        .home-page { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .home-page input { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; width: 80%; }
-        .home-page button { padding: 10px 20px; font-size: 1rem; border: none; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-        .home-page button:hover { background-color: #0056b3; }
-
-        /* ChatPage Styles */
-        .message-area { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; background-color: #fafafa; border-radius: 4px; }
-        .message { margin-bottom: 8px; padding: 5px 10px; border-radius: 4px; }
-        .message .sender { font-weight: bold; margin-right: 5px; }
-        .system-message { font-style: italic; color: #888; text-align: center; }
-        .my-message { text-align: right; }
-        .my-message .content { background-color: #dcf8c6; display: inline-block; text-align: left; }
-        .other-message .content { background-color: #f1f1f1; display: inline-block; }
-        .input-area { display: flex; gap: 10px; }
-        .input-area input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .input-area button { padding: 10px 15px; border: none; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-        .input-area button:hover { background-color: #0056b3; }
-    </style>
-    <!-- React, Babel, and React Router CDN -->
+    <title>React Debug</title>
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom@5/umd/react-router-dom.development.js"></script>
 </head>
 <body>
-
-<div id="root"></div>
-
-<!-- Load React Components -->
-<script type="text/babel" src="/js/HomePage.js"></script>
-<script type="text/babel" src="/js/ChatPage.js"></script>
-<script type="text/babel" src="/js/App.js"></script>
-
-<!-- Mount the App -->
-<script type="text/babel">
-    ReactDOM.render(<App />, document.getElementById('root'));
-</script>
-
+    <div id="root"></div>
+    <script type="text/babel" src="/js/App.js"></script>
 </body>
 </html>
