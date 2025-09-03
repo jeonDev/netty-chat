@@ -15,7 +15,7 @@ public class MemberEndpoint {
         this.memberSearchUseCase = memberSearchUseCase;
     }
 
-    @GetMapping("/v1/member/list")
+    @GetMapping("/api/v1/member/list")
     public List<MemberDto> getMemberList() {
         return memberSearchUseCase.getMemberList();
     }
