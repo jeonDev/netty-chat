@@ -1,18 +1,24 @@
 const { useState, useEffect, useRef } = React;
+const { BrowserRouter, Route, Switch, Redirect, Link } = ReactRouterDOM;
 
 // --- MainPage Component ---
-const MainPage = ({ onNavigateToLogin }) => (
-    <div style={styles.homeContainer}>
-        <h1 style={{ marginBottom: '30px' }}>Welcome to Chat App</h1>
-        <button style={styles.button} onClick={onNavigateToLogin}>Go to Login</button>
-    </div>
-);
+const MainPage = () => {
+    return (
+        <div style={styles.homeContainer}>
+            <h1 style={{ marginBottom: '30px' }}>Welcome to Chat App</h1>
+            <Link to="/login">
+                <button style={styles.button}>Go to Login</button>
+            </Link>
+        </div>
+    );
+};
 
 
 // --- LoginPage Component ---
-const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
+const LoginPage = ({ onLogin }) => {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
+    const history = ReactRouterDOM.useHistory();
 
     const handleLogin = () => {
         if (!id.trim() || !password.trim()) {
@@ -36,7 +42,9 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);
             localStorage.setItem('grantType', data.grantType);
+            localStorage.setItem('nickname', id.trim());
             onLogin(id.trim());
+            history.push('/chat');
         })
         .catch(error => {
             console.error('Login API error:', error);
@@ -55,7 +63,9 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
             <input style={{...styles.input, marginTop: '10px'}} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyPress={handleKeyPress} />
             <div style={{...styles.buttonGroup, marginTop: '20px'}}>
                 <button style={styles.button} onClick={handleLogin}>Login</button>
-                <button style={{...styles.button, ...styles.secondaryButton}} onClick={onNavigateToSignUp}>Sign Up</button>
+                <Link to="/signup">
+                    <button style={{...styles.button, ...styles.secondaryButton}}>Sign Up</button>
+                </Link>
             </div>
         </div>
     );
@@ -63,7 +73,7 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
 
 
 // --- SignUpPage Component ---
-const SignUpPage = ({ onNavigateToLogin }) => {
+const SignUpPage = () => {
     const [formData, setFormData] = useState({
         loginId: '',
         name: '',
@@ -71,6 +81,7 @@ const SignUpPage = ({ onNavigateToLogin }) => {
         phoneNumber: '',
         password: ''
     });
+    const history = ReactRouterDOM.useHistory();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -96,7 +107,7 @@ const SignUpPage = ({ onNavigateToLogin }) => {
         .then(response => {
             if (response.ok) {
                 alert('회원가입 성공! 로그인 해주세요.');
-                onNavigateToLogin();
+                history.push('/login');
             } else {
                 alert('회원가입 실패. 다시 시도해주세요.');
             }
@@ -117,14 +128,16 @@ const SignUpPage = ({ onNavigateToLogin }) => {
             <input style={{...styles.input, marginTop: '10px'}} name="phoneNumber" placeholder="Phone Number" value={formData.phoneNumber} onChange={handleChange} />
             <div style={{...styles.buttonGroup, marginTop: '20px'}}>
                  <button style={styles.button} onClick={handleSignUp}>Sign Up</button>
-                 <button style={{...styles.button, ...styles.secondaryButton}} onClick={onNavigateToLogin}>Back to Login</button>
+                 <Link to="/login">
+                    <button style={{...styles.button, ...styles.secondaryButton}}>Back to Login</button>
+                 </Link>
             </div>
         </div>
     );
 };
 
 
-// --- ChatPage Component (remains the same) ---
+// --- ChatPage Component ---
 const ChatPage = ({ ws, nickname }) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
@@ -189,8 +202,7 @@ const ChatPage = ({ ws, nickname }) => {
 
 // --- Main App Component ---
 const App = () => {
-    const [page, setPage] = useState('main'); // 'main', 'login', 'signup', or 'chat'
-    const [nickname, setNickname] = useState('');
+    const [nickname, setNickname] = useState(localStorage.getItem('nickname') || '');
     const [ws, setWs] = useState(null);
 
     useEffect(() => {
@@ -199,21 +211,24 @@ const App = () => {
         return () => { if (webSocket) webSocket.close(); };
     }, []);
 
-    const renderPage = () => {
-        switch (page) {
-            case 'login':
-                return <LoginPage onLogin={(id) => { setNickname(id); setPage('chat'); }} onNavigateToSignUp={() => setPage('signup')} />;
-            case 'signup':
-                return <SignUpPage onNavigateToLogin={() => setPage('login')} />;
-            case 'chat':
-                return <ChatPage ws={ws} nickname={nickname} />;
-            case 'main':
-            default:
-                return <MainPage onNavigateToLogin={() => setPage('login')} />;
-        }
-    };
-
-    return <div>{renderPage()}</div>;
+    return (
+        <BrowserRouter>
+            <Switch>
+                <Route path="/login">
+                    <LoginPage onLogin={setNickname} />
+                </Route>
+                <Route path="/signup">
+                    <SignUpPage />
+                </Route>
+                <Route path="/chat">
+                    {nickname ? <ChatPage ws={ws} nickname={nickname} /> : <Redirect to="/login" />}
+                </Route>
+                <Route path="/">
+                    <MainPage />
+                </Route>
+            </Switch>
+        </BrowserRouter>
+    );
 };
 
 // --- Styles ---
