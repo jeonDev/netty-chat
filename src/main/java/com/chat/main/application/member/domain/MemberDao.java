@@ -8,4 +8,5 @@ public interface MemberDao {
     Member save(Member member);
     Optional<Member> findById(Long id);
     List<Member> findByAll();
+    Optional<Member> findByLoginId(String loginId);
 }

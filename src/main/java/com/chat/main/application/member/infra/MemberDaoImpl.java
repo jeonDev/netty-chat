@@ -30,4 +30,9 @@ public class MemberDaoImpl implements MemberDao {
     public List<Member> findByAll() {
         return jpaMemberRepository.findAll();
     }
+
+    @Override
+    public Optional<Member> findByLoginId(String loginId) {
+        return jpaMemberRepository.findByLoginId(loginId);
+    }
 }
