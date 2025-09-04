@@ -16,7 +16,7 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
 
     const handleLogin = () => {
         if (!id.trim() || !password.trim()) {
-            alert('Please enter both ID and Password.');
+            alert('아이디와 비밀번호를 모두 입력해주세요.');
             return;
         }
 
@@ -27,17 +27,20 @@ const LoginPage = ({ onLogin, onNavigateToSignUp }) => {
         })
         .then(response => {
             if (response.ok) {
-                // Per user request, proceed to chat on successful request.
-                // Later, we will handle the response data (e.g., tokens).
-                onLogin(id.trim());
+                return response.json();
             } else {
-                // Handle login failure
-                alert('Login failed. Please check your credentials.');
+                throw new Error('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
             }
+        })
+        .then(data => {
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            localStorage.setItem('grantType', data.grantType);
+            onLogin(id.trim());
         })
         .catch(error => {
             console.error('Login API error:', error);
-            alert('An error occurred during login.');
+            alert(error.message);
         });
     };
 
@@ -77,11 +80,11 @@ const SignUpPage = ({ onNavigateToLogin }) => {
     const handleSignUp = () => {
         const { loginId, name, nickName, phoneNumber, password } = formData;
         if (!loginId || !name || !nickName || !phoneNumber || !password) {
-            alert('Please fill out all fields.');
+            alert('모든 필드를 입력해주세요.');
             return;
         }
         if (password.length < 8 || password.length > 20) {
-            alert('Password must be between 8 and 20 characters.');
+            alert('비밀번호는 8자 이상 20자 이하로 입력해주세요.');
             return;
         }
 
@@ -92,15 +95,15 @@ const SignUpPage = ({ onNavigateToLogin }) => {
         })
         .then(response => {
             if (response.ok) {
-                alert('Sign-up successful! Please log in.');
+                alert('회원가입 성공! 로그인 해주세요.');
                 onNavigateToLogin();
             } else {
-                alert('Sign-up failed. Please try again.');
+                alert('회원가입 실패. 다시 시도해주세요.');
             }
         })
         .catch(error => {
             console.error('Sign-up API error:', error);
-            alert('An error occurred during sign-up.');
+            alert('회원가입 중 오류가 발생했습니다.');
         });
     };
 
