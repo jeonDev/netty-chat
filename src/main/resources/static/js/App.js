@@ -42,8 +42,8 @@ const LoginPage = ({ onLogin }) => {
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);
             localStorage.setItem('grantType', data.grantType);
-            localStorage.setItem('nickname', id.trim());
-            onLogin(id.trim());
+            localStorage.setItem('nickname', data.nickName);
+            onLogin(data.nickName);
             history.push('/chat');
         })
         .catch(error => {
@@ -148,7 +148,7 @@ const ChatPage = ({ ws, nickname }) => {
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.sender !== nickname) setMessages(prev => [...prev, { ...data, type: 'user' }]);
+                setMessages(prev => [...prev, { ...data, type: 'user' }]);
             } catch (e) {
                 setMessages(prev => [...prev, { sender: 'Server', message: event.data, type: 'user' }]);
             }
@@ -162,6 +162,7 @@ const ChatPage = ({ ws, nickname }) => {
     }, [messages]);
 
     const handleSendMessage = () => {
+        console.log('ws.readyState:', ws.readyState);
         if (message.trim() === "" || !ws || ws.readyState !== WebSocket.OPEN) return;
         const data = { sender: nickname, message: message };
         ws.send(JSON.stringify(data));
@@ -183,8 +184,8 @@ const ChatPage = ({ ws, nickname }) => {
                     const messageStyle = isMine ? styles.myMessage : styles.otherMessage;
                     return (
                         <div key={index} style={messageStyle.container}>
+                            {!isMine && <div style={styles.sender}>{msg.sender}</div>}
                             <div style={messageStyle.content}>
-                                {!isMine && <div style={styles.sender}>{msg.sender}</div>}
                                 <span>{msg.message}</span>
                             </div>
                         </div>
@@ -235,15 +236,15 @@ const App = () => {
 const styles = {
     homeContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', border: '1px solid #ccc', borderRadius: '8px', maxWidth: '400px', margin: '50px auto', backgroundColor: '#f9f9f9' },
     input: { padding: '10px', fontSize: '16px', width: '80%', borderRadius: '4px', border: '1px solid #ddd' },
-    button: { padding: '10px 20px', fontSize: '16px', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px' },
+    button: { padding: '10px 20px', fontSize: '16px', cursor: 'pointer', backgroundColor: '#FFEB00', color: 'black', border: 'none', borderRadius: '4px' },
     buttonGroup: { display: 'flex', gap: '10px' },
-    secondaryButton: { backgroundColor: '#6c757d' },
-    messageArea: { border: '1px solid #ccc', padding: '10px', height: '400px', overflowY: 'scroll', marginBottom: '10px', backgroundColor: '#fafafa', borderRadius: '4px' },
-    inputArea: { display: 'flex', gap: '10px' },
+    secondaryButton: { backgroundColor: '#f2f2f2', color: 'black' },
+    messageArea: { backgroundColor: '#b2c7d9', padding: '10px', height: '400px', overflowY: 'scroll', marginBottom: '10px', borderRadius: '4px' },
+    inputArea: { display: 'flex', gap: '10px', padding: '10px', backgroundColor: '#f2f2f2' },
     systemMessage: { fontStyle: 'italic', color: '#888', textAlign: 'center', width: '100%', marginBottom: '8px' },
-    sender: { fontWeight: 'bold', marginBottom: '4px', fontSize: '0.9em', color: '#555' },
-    myMessage: { container: { textAlign: 'right', marginBottom: '8px' }, content: { backgroundColor: '#dcf8c6', padding: '8px 12px', borderRadius: '15px', display: 'inline-block', textAlign: 'left' } },
-    otherMessage: { container: { textAlign: 'left', marginBottom: '8px' }, content: { backgroundColor: '#f1f1f1', padding: '8px 12px', borderRadius: '15px', display: 'inline-block' } }
+    sender: { fontWeight: 'bold', marginBottom: '5px', fontSize: '0.9em', color: '#555' },
+    myMessage: { container: { textAlign: 'right', marginBottom: '8px' }, content: { backgroundColor: '#FFEB00', padding: '8px 12px', borderRadius: '15px', display: 'inline-block', textAlign: 'left', maxWidth: '70%' } },
+    otherMessage: { container: { textAlign: 'left', marginBottom: '8px' }, content: { backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '15px', display: 'inline-block', maxWidth: '70%' } }
 };
 
 ReactDOM.render(<App />, document.getElementById('root'));
