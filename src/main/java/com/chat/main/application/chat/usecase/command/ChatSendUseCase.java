@@ -22,17 +22,18 @@ public class ChatSendUseCase {
 
     @Transactional
     public ChatSendResponse messageSave(MessageType messageType,
+                                        Long chatRoomId,
                                         String message,
                                         Long memberId
     ) {
-        log.info("[Chat] send({},{},{})", messageType, message, memberId);
+        log.info("[Chat] send({}, {}, {}, {})", messageType, chatRoomId, message, memberId);
 
         // 1. 사용자 검증
         memberDao.findById(memberId)
                 .orElseThrow();
 
         // 2. 메시지 전송
-        Chat chat = this.createChat(messageType, message, memberId);
+        Chat chat = this.createChat(messageType, chatRoomId, message, memberId);
 
         // 3. 메시지 처리
         this.messageAfterProcess(chat);
@@ -44,10 +45,11 @@ public class ChatSendUseCase {
                 .build();
     }
 
-    private Chat createChat(MessageType messageType, String message, Long memberId) {
+    private Chat createChat(MessageType messageType, Long chatRoomId, String message, Long memberId) {
         return chatDao.save(
                 Chat.of(
                         memberId,
+                        chatRoomId,
                         messageType,
                         message
                 )
