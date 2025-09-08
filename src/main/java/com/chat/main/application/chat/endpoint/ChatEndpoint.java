@@ -32,7 +32,7 @@ public class ChatEndpoint {
 
     @PutMapping("/api/v1/chatRoom")
     public Long invite(@Valid @RequestBody ChatRoomInviteRequest request) {
-        ChatRoomResponse chatRoomResponse = chatRoomUseCase.invite(request.getChatType(), request.getChatRoomId(), request.getMemberIds());
+        ChatRoomResponse chatRoomResponse = chatRoomUseCase.invite(request.getChatRoomId(), request.getMemberIds());
 
         return chatRoomResponse.chatRoomId();
     }

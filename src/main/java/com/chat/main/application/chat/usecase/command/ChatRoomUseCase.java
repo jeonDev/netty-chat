@@ -1,8 +1,10 @@
 package com.chat.main.application.chat.usecase.command;
 
 import com.chat.main.application.chat.domain.ChatRoom;
+import com.chat.main.application.chat.domain.ChatRoomMember;
 import com.chat.main.application.chat.repository.ChatRoomDao;
 import com.chat.main.application.chat.domain.ChatType;
+import com.chat.main.application.chat.repository.ChatRoomMemberDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +17,12 @@ import java.util.Optional;
 public class ChatRoomUseCase {
 
     private final ChatRoomDao chatRoomDao;
+    private final ChatRoomMemberDao chatRoomMemberDao;
 
-    public ChatRoomUseCase(ChatRoomDao chatRoomDao) {
+    public ChatRoomUseCase(ChatRoomDao chatRoomDao,
+                           ChatRoomMemberDao chatRoomMemberDao) {
         this.chatRoomDao = chatRoomDao;
+        this.chatRoomMemberDao = chatRoomMemberDao;
     }
 
     @Transactional
@@ -39,12 +44,9 @@ public class ChatRoomUseCase {
         }
 
         // 2. 채팅방 생성 및 초대
-        var chatRoom = chatRoomDao.save(ChatRoom.of(
-                chatType,
-                memberId
-        ));
+        var chatRoom = chatRoomDao.save(ChatRoom.of(chatType));
 
-        this.chatRoomInvite(chatType, chatRoom.getChatRoomId(), memberIds);
+        this.chatRoomInvite(chatRoom.getChatRoomId(), memberIds);
 
         return ChatRoomResponse.of(
                 chatRoom.getChatRoomId()
@@ -52,27 +54,31 @@ public class ChatRoomUseCase {
     }
 
     @Transactional
-    public ChatRoomResponse invite(ChatType chatType,
-                       Long chatRoomId,
-                       Long... memberIds
+    public ChatRoomResponse invite(Long chatRoomId,
+                                   Long... memberIds
     ) {
-        // 1. DM 방 초대 불가
-        if (chatType == ChatType.DM) {
+        // 1. 채팅방 조회
+        ChatRoom chatRoom = chatRoomDao.findById(chatRoomId)
+                .orElseThrow();
+
+        // 2. DM 방 초대 불가
+        if (chatRoom.getChatType() == ChatType.DM) {
             throw new IllegalArgumentException("개인 채팅방은 한 명만 대화 가능합니다.");
         }
 
-        // 2. 사용자 초대
-        this.chatRoomInvite(chatType, chatRoomId, memberIds);
+        // 3. 사용자 초대
+        this.chatRoomInvite(chatRoomId, memberIds);
 
         return ChatRoomResponse.of(
                 chatRoomId
         );
     }
 
-    private void chatRoomInvite(ChatType chatType, Long chatRoomId, Long[] memberIds) {
+    private void chatRoomInvite(Long chatRoomId, Long[] memberIds) {
         var chatRoomList = Arrays.stream(memberIds)
-                .map(item -> ChatRoom.of(chatRoomId, chatType, item))
+                .map(item -> ChatRoomMember.of(chatRoomId, item))
                 .toList();
-        chatRoomDao.saveAll(chatRoomList);
+
+        chatRoomMemberDao.saveAll(chatRoomList);
     }
 }

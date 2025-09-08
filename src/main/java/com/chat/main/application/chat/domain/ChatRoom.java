@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 
 @Getter
+@DynamicInsert
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@IdClass(ChatRoomId.class)
 @Table(name = "CHAT_ROOM")
 public class ChatRoom {
 
@@ -17,41 +18,19 @@ public class ChatRoom {
     @Column(name = "CHAT_ROOM_ID")
     private Long chatRoomId;
 
-    @Id
-    @Column(name = "MEMBER_ID")
-    private Long memberId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "CHAT_TYPE")
     private ChatType chatType;
 
-
-    public ChatRoom(Long chatRoomId, ChatType chatType, Long memberId) {
-        this.chatRoomId = chatRoomId;
+    public ChatRoom(ChatType chatType) {
         this.chatType = chatType;
-        this.memberId = memberId;
     }
 
     public static ChatRoom of(
-            ChatType chatType,
-            Long memberId
-    ) {
-        return of(
-                null,
-                chatType,
-                memberId
-        );
-    }
-
-    public static ChatRoom of(
-            Long chatRoomId,
-            ChatType chatType,
-            Long memberId
+            ChatType chatType
     ) {
         return new ChatRoom(
-                chatRoomId,
-                chatType,
-                memberId
+                chatType
         );
     }
 }
