@@ -5,6 +5,7 @@ import com.chat.main.application.chat.domain.ChatRoomMember;
 import com.chat.main.application.chat.repository.ChatRoomDao;
 import com.chat.main.application.chat.domain.ChatType;
 import com.chat.main.application.chat.repository.ChatRoomMemberDao;
+import com.chat.main.application.member.repository.MemberDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +19,14 @@ public class ChatRoomUseCase {
 
     private final ChatRoomDao chatRoomDao;
     private final ChatRoomMemberDao chatRoomMemberDao;
+    private final MemberDao memberDao;
 
     public ChatRoomUseCase(ChatRoomDao chatRoomDao,
-                           ChatRoomMemberDao chatRoomMemberDao) {
+                           ChatRoomMemberDao chatRoomMemberDao,
+                           MemberDao memberDao) {
         this.chatRoomDao = chatRoomDao;
         this.chatRoomMemberDao = chatRoomMemberDao;
+        this.memberDao = memberDao;
     }
 
     @Transactional
@@ -44,6 +48,7 @@ public class ChatRoomUseCase {
         }
 
         // 2. 채팅방 생성 및 초대
+        // TODO: 본인 채팅방에 추가하기.
         var chatRoom = chatRoomDao.save(ChatRoom.of(chatType));
 
         this.chatRoomInvite(chatRoom.getChatRoomId(), memberIds);
@@ -76,9 +81,22 @@ public class ChatRoomUseCase {
 
     private void chatRoomInvite(Long chatRoomId, Long[] memberIds) {
         var chatRoomList = Arrays.stream(memberIds)
-                .map(item -> ChatRoomMember.of(chatRoomId, item))
+                .map(item -> this.createChatRoomMemberEntity(chatRoomId, item))
                 .toList();
 
         chatRoomMemberDao.saveAll(chatRoomList);
+    }
+
+    private ChatRoomMember createChatRoomMemberEntity(Long chatRoomId, Long item) {
+        // 1. 사용자 정보 조회 (미 존재 시 예외)
+        this.getMemberOrThrow(item);
+
+        // 2. 채팅 방 유저 정보 생성
+        return ChatRoomMember.of(chatRoomId, item);
+    }
+
+    private void getMemberOrThrow(Long memberId) {
+        memberDao.findById(memberId)
+                .orElseThrow();
     }
 }
