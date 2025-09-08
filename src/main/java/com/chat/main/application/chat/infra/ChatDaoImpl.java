@@ -1,7 +1,7 @@
 package com.chat.main.application.chat.infra;
 
 import com.chat.main.application.chat.domain.Chat;
-import com.chat.main.application.chat.domain.ChatDao;
+import com.chat.main.application.chat.repository.ChatDao;
 import com.chat.main.application.chat.infra.jpa.JpaChatRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
 package com.chat.main.application.member.infra;
 
 import com.chat.main.application.member.domain.Member;
-import com.chat.main.application.member.domain.MemberDao;
+import com.chat.main.application.member.repository.MemberDao;
 import com.chat.main.application.member.infra.jpa.JpaMemberRepository;
 import org.springframework.stereotype.Repository;
 

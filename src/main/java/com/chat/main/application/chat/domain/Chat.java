@@ -15,6 +15,9 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "CHAT_ROOM_ID")
+    private Long chatRoomId;
+
     @Column(name = "MEMBER_ID")
     private Long memberId;
 
@@ -26,12 +29,14 @@ public class Chat {
     private String message;
 
     public static Chat of(
+            Long chatRoomId,
             Long memberId,
             MessageType messageType,
             String message
     ) {
         return new Chat(
                 null,
+                chatRoomId,
                 memberId,
                 messageType,
                 message
@@ -39,11 +44,13 @@ public class Chat {
     }
 
     private Chat(Long id,
+                 Long chatRoomId,
                  Long memberId,
                  MessageType messageType,
                  String message
     ) {
         this.id = id;
+        this.chatRoomId = chatRoomId;
         this.memberId = memberId;
         this.messageType = messageType;
         this.message = message;
@@ -51,6 +58,10 @@ public class Chat {
     }
 
     private void validFields() {
+        if (chatRoomId == null) {
+            throw new IllegalArgumentException("채팅 방이 선택 되지 않았습니다.");
+        }
+
         if (messageType == null) {
             throw new IllegalArgumentException("메시지 타입이 명확하지 않습니다.");
         }

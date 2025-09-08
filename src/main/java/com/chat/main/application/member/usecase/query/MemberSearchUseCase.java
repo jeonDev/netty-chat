@@ -1,6 +1,6 @@
 package com.chat.main.application.member.usecase.query;
 
-import com.chat.main.application.member.domain.MemberDao;
+import com.chat.main.application.member.repository.MemberDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
