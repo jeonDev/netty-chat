@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ChatRoomDao {
     ChatRoom save(ChatRoom chatRoom);
-
-    Optional<ChatRoom> findById(Long id);
+    void saveAll(List<ChatRoom> chatRoomList);
     List<ChatRoom> findByMemberId(Long memberId);
+    Optional<ChatRoom> findByChatRoomByChatTypeAndTwoMembers(Long sendMemberId, Long targetMemberId);
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@IdClass(ChatRoomId.class)
 @Table(name = "CHAT_ROOM")
 public class ChatRoom {
 
@@ -16,12 +17,14 @@ public class ChatRoom {
     @Column(name = "CHAT_ROOM_ID")
     private Long chatRoomId;
 
+    @Id
+    @Column(name = "MEMBER_ID")
+    private Long memberId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "CHAT_TYPE")
     private ChatType chatType;
 
-    @Column(name = "MEMBER_ID")
-    private Long memberId;
 
     public ChatRoom(Long chatRoomId, ChatType chatType, Long memberId) {
         this.chatRoomId = chatRoomId;

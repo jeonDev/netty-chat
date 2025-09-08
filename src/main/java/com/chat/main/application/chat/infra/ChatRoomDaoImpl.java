@@ -2,6 +2,7 @@ package com.chat.main.application.chat.infra;
 
 import com.chat.main.application.chat.domain.ChatRoom;
 import com.chat.main.application.chat.domain.ChatRoomDao;
+import com.chat.main.application.chat.domain.ChatType;
 import com.chat.main.application.chat.infra.jpa.JpaChatRoomRepository;
 import org.springframework.stereotype.Repository;
 
@@ -23,12 +24,18 @@ public class ChatRoomDaoImpl implements ChatRoomDao {
     }
 
     @Override
-    public Optional<ChatRoom> findById(Long id) {
-        return jpaChatRoomRepository.findById(id);
+    public void saveAll(List<ChatRoom> chatRoomList) {
+        // 건이 많지 않을 것이라 그냥 saveAll
+        jpaChatRoomRepository.saveAll(chatRoomList);
     }
 
     @Override
     public List<ChatRoom> findByMemberId(Long memberId) {
         return jpaChatRoomRepository.findByMemberId(memberId);
+    }
+
+    @Override
+    public Optional<ChatRoom> findByChatRoomByChatTypeAndTwoMembers(Long sendMemberId, Long targetMemberId) {
+        return jpaChatRoomRepository.findByChatRoomByChatTypeAndTwoMembers(ChatType.DM, sendMemberId, targetMemberId);
     }
 }
