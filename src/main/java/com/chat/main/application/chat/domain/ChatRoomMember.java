@@ -13,14 +13,14 @@ import lombok.NoArgsConstructor;
 public class ChatRoomMember {
 
     @Id
-    @Column(name = "CHAT_ROOM_ID")
-    private Long chatRoomId;
-
-    @Id
     @Column(name = "MEMBER_ID")
     private Long memberId;
 
-    @Column(name = "DELETE_YN")
+    @Id
+    @Column(name = "CHAT_ROOM_ID")
+    private Long chatRoomId;
+
+    @Column(name = "DELETE_YN", nullable = false)
     private boolean deleteYn;
 
     public ChatRoomMember(Long chatRoomId, Long memberId) {
