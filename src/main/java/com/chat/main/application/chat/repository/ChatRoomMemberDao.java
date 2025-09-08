@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ChatRoomMemberDao {
     void saveAll(List<ChatRoomMember> chatRoomMembers);
+
+    List<ChatRoomMember> findByMemberId(Long memberId);
 }

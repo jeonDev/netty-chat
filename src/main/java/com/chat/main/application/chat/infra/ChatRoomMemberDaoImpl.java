@@ -20,4 +20,9 @@ public class ChatRoomMemberDaoImpl implements ChatRoomMemberDao {
     public void saveAll(List<ChatRoomMember> chatRoomMembers) {
         jpaChatRoomMemberRepository.saveAll(chatRoomMembers);
     }
+
+    @Override
+    public List<ChatRoomMember> findByMemberId(Long memberId) {
+        return jpaChatRoomMemberRepository.findByMemberIdAndDeleteYn(memberId, false);
+    }
 }
