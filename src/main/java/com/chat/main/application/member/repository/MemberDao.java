@@ -1,4 +1,6 @@
-package com.chat.main.application.member.domain;
+package com.chat.main.application.member.repository;
+
+import com.chat.main.application.member.domain.Member;
 
 import java.util.List;
 import java.util.Optional;

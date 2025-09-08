@@ -1,7 +1,7 @@
 package com.chat.main.application.member.usecase.command;
 
 import com.chat.main.application.member.domain.Member;
-import com.chat.main.application.member.domain.MemberDao;
+import com.chat.main.application.member.repository.MemberDao;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

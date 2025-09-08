@@ -1,7 +1,7 @@
 package com.chat.main.application.chat.usecase.command;
 
 import com.chat.main.application.chat.domain.ChatRoom;
-import com.chat.main.application.chat.domain.ChatRoomDao;
+import com.chat.main.application.chat.repository.ChatRoomDao;
 import com.chat.main.application.chat.domain.ChatType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

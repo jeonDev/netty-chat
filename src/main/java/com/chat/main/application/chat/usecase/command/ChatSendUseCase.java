@@ -1,9 +1,9 @@
 package com.chat.main.application.chat.usecase.command;
 
 import com.chat.main.application.chat.domain.Chat;
-import com.chat.main.application.chat.domain.ChatDao;
+import com.chat.main.application.chat.repository.ChatDao;
 import com.chat.main.application.chat.domain.MessageType;
-import com.chat.main.application.member.domain.MemberDao;
+import com.chat.main.application.member.repository.MemberDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
