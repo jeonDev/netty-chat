@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -48,14 +49,21 @@ public class ChatRoomUseCase {
         }
 
         // 2. 채팅방 생성 및 초대
-        // TODO: 본인 채팅방에 추가하기.
+        List<Long> memberList = this.makeChatRoomMemberList(memberId, memberIds);
         var chatRoom = chatRoomDao.save(ChatRoom.of(chatType));
 
-        this.chatRoomInvite(chatRoom.getChatRoomId(), memberIds);
+        this.chatRoomInvite(chatRoom.getChatRoomId(), memberList);
 
         return ChatRoomResponse.of(
                 chatRoom.getChatRoomId()
         );
+    }
+
+    private ArrayList<Long> makeChatRoomMemberList(Long memberId, Long[] memberIds) {
+        var memberList = new ArrayList<Long>();
+        memberList.add(memberId);
+        memberList.addAll(List.of(memberIds));
+        return memberList;
     }
 
     @Transactional
@@ -72,15 +80,15 @@ public class ChatRoomUseCase {
         }
 
         // 3. 사용자 초대
-        this.chatRoomInvite(chatRoomId, memberIds);
+        this.chatRoomInvite(chatRoomId, List.of(memberIds));
 
         return ChatRoomResponse.of(
                 chatRoomId
         );
     }
 
-    private void chatRoomInvite(Long chatRoomId, Long[] memberIds) {
-        var chatRoomList = Arrays.stream(memberIds)
+    private void chatRoomInvite(Long chatRoomId, List<Long> memberList) {
+        var chatRoomList = memberList.stream()
                 .map(item -> this.createChatRoomMemberEntity(chatRoomId, item))
                 .toList();
 
