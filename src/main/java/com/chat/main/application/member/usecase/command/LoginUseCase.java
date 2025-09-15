@@ -2,6 +2,7 @@ package com.chat.main.application.member.usecase.command;
 
 import com.chat.main.application.member.domain.Member;
 import com.chat.main.application.member.repository.MemberDao;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,9 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class LoginUseCase {
 
     private final MemberDao memberDao;
+    private final PasswordEncoder passwordEncoder;
 
-    public LoginUseCase(MemberDao memberDao) {
+    public LoginUseCase(MemberDao memberDao,
+                        PasswordEncoder passwordEncoder) {
         this.memberDao = memberDao;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -19,7 +23,7 @@ public class LoginUseCase {
         Member member = memberDao.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
 
-        if (!member.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalAccessException("패스워드가 틀렸습니다.");
         }
 
