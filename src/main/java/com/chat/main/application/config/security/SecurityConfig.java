@@ -24,16 +24,13 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                .authorizeHttpRequests((authorize) -> authorize.requestMatchers(
-                        "/api/v1/member",
-                        "/api/v1/login",
-                        "/h2-console",
-                        "/h2-console/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/swagger-config",
-                        "/v3/api-docs"
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(
+                                "/api/v1/member",
+                                "/api/v1/login"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(new UrlFilter(), UsernamePasswordAuthenticationFilter.class);
 
