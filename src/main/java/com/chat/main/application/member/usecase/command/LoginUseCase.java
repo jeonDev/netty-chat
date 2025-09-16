@@ -18,7 +18,7 @@ public class LoginUseCase {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public LoginSuccessResponse login(String loginId, String password) throws IllegalAccessException {
         Member member = memberDao.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
