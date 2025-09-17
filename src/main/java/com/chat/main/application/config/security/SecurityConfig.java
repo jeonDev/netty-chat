@@ -26,11 +26,14 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(
+                                "/view/**",
                                 "/api/v1/member",
-                                "/api/v1/login"
+                                "/api/v1/login",
+                                "/swagger-ui/**",
+                                "/h2-console/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(new UrlFilter(), UsernamePasswordAuthenticationFilter.class);
 
