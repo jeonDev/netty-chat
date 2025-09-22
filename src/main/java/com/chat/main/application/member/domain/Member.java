@@ -16,7 +16,7 @@ public class Member {
     @Column(name = "MEMBER_ID")
     private Long memberId;
 
-    @Column(name = "LOGIN_ID", length = 20, nullable = false)
+    @Column(name = "LOGIN_ID", length = 20, nullable = false, unique = true)
     public String loginId;
 
     @Column(name = "NAME", length = 20, nullable = false)
@@ -28,7 +28,7 @@ public class Member {
     @Column(name = "PHONE_NUMBER", length = 11, nullable = false)
     private String phoneNumber;
 
-    @Column(name = "PASSWORD", length = 100, nullable = false)
+    @Column(name = "PASSWORD", length = 255, nullable = false)
     private String password;
 
     public static Member of(
@@ -66,10 +66,5 @@ public class Member {
         if (this.phoneNumber == null || this.phoneNumber.isEmpty()) {
             throw new IllegalArgumentException("전화번호를 입력하시오.");
         }
-
-        if (this.password == null || this.password.length() < 8 || this.password.length() > 20) {
-            throw new IllegalArgumentException("패스워드를 입력하시오.(8~20)");
-        }
-
     }
 }
