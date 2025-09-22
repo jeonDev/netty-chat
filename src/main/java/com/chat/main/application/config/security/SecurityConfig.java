@@ -1,5 +1,6 @@
 package com.chat.main.application.config.security;
 
+import com.chat.main.application.config.filter.JwtFilter;
 import com.chat.main.application.config.filter.UrlFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+    private final JwtProvider jwtProvider;
+
+    public SecurityConfig(JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -35,7 +41,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new UrlFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new UrlFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
